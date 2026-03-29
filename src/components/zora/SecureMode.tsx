@@ -22,7 +22,7 @@ const vaultItems = [
 const trustedContacts = [
   { name: "Ana Silva", phone: "(11) 98765-4321" },
   { name: "Centro de Apoio", phone: "180" },
-  { name: "Delegacia da Mulher", phone: "(11) 3101-2345" },
+  { name: "Delegacia da Mulher", phone: "(11) 4521-2024" },
 ];
 
 const container = {
