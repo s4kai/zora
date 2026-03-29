@@ -1,0 +1,132 @@
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* === FACHADA (Nutrição) — Paleta pastel acolhedora === */
+    --background: 40 30% 97%;
+    --foreground: 220 20% 20%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 20%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 20%;
+
+    --primary: 160 45% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 20 80% 88%;
+    --secondary-foreground: 20 40% 30%;
+
+    --muted: 160 20% 94%;
+    --muted-foreground: 220 10% 50%;
+
+    --accent: 270 40% 90%;
+    --accent-foreground: 270 30% 30%;
+
+    --destructive: 0 55% 40%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 160 15% 88%;
+    --input: 160 15% 88%;
+    --ring: 160 45% 45%;
+
+    --radius: 1rem;
+
+    /* Zora custom facade tokens */
+    --zora-mint: 160 45% 85%;
+    --zora-peach: 20 80% 88%;
+    --zora-lavender: 270 40% 90%;
+    --zora-mint-deep: 160 45% 45%;
+    --zora-warm-bg: 40 30% 97%;
+
+    /* Zora secure mode tokens */
+    --zora-dark-bg: 220 15% 8%;
+    --zora-dark-surface: 220 12% 14%;
+    --zora-dark-card: 220 10% 18%;
+    --zora-dark-border: 220 8% 25%;
+    --zora-dark-text: 220 10% 85%;
+    --zora-dark-muted: 220 8% 50%;
+    --zora-crimson: 0 55% 40%;
+    --zora-crimson-soft: 0 40% 25%;
+    --zora-safe-green: 145 50% 40%;
+    --zora-alert-amber: 40 90% 55%;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 220 15% 8%;
+    --foreground: 220 10% 85%;
+    --card: 220 10% 14%;
+    --card-foreground: 220 10% 85%;
+    --popover: 220 10% 14%;
+    --popover-foreground: 220 10% 85%;
+    --primary: 0 55% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 10% 18%;
+    --secondary-foreground: 220 10% 85%;
+    --muted: 220 8% 20%;
+    --muted-foreground: 220 8% 50%;
+    --accent: 220 10% 22%;
+    --accent-foreground: 220 10% 85%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 220 8% 25%;
+    --input: 220 8% 25%;
+    --ring: 0 55% 40%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Nunito", sans-serif;
+  }
+
+  .font-secure {
+    font-family: "Inter", sans-serif;
+  }
+}
+
+@layer utilities {
+  /* Facade soft shadows */
+  .shadow-zora {
+    box-shadow:
+      0 2px 16px -4px hsl(160 45% 45% / 0.1),
+      0 1px 4px -1px hsl(0 0% 0% / 0.05);
+  }
+  .shadow-zora-lg {
+    box-shadow:
+      0 8px 30px -8px hsl(160 45% 45% / 0.15),
+      0 2px 8px -2px hsl(0 0% 0% / 0.05);
+  }
+
+  /* Secure mode shadows */
+  .shadow-secure {
+    box-shadow: 0 4px 20px -4px hsl(0 0% 0% / 0.5);
+  }
+}
