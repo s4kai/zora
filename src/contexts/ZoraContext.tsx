@@ -103,7 +103,9 @@ interface ZoraContextType {
 
   // Habits State
   habits: Habit[];
-  addHabit: (habit: Omit<Habit, "id" | "streak" | "completedDates" | "createdAt">) => void;
+  addHabit: (
+    habit: Omit<Habit, "id" | "streak" | "completedDates" | "createdAt">,
+  ) => void;
   toggleHabitCompletion: (habitId: string) => void;
   removeHabit: (habitId: string) => void;
   getHabitCompletionStatus: (habitId: string) => boolean;
@@ -115,7 +117,10 @@ interface ZoraContextType {
   getHistoryByType: (type: HistoryEntry["type"]) => HistoryEntry[];
 
   // Stats
-  getMonthStats: (month: number, year: number) => {
+  getMonthStats: (
+    month: number,
+    year: number,
+  ) => {
     totalMeals: number;
     totalWaterLiters: number;
     positiveMoodPercentage: number;
@@ -293,27 +298,27 @@ export const ZoraProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Hydration State
   const [hydration, setHydration] = useState<HydrationState>(() =>
-    loadFromStorage(STORAGE_KEYS.hydration, defaultHydration)
+    loadFromStorage(STORAGE_KEYS.hydration, defaultHydration),
   );
 
   // Mood State
   const [moods, setMoods] = useState<MoodEntry[]>(() =>
-    loadFromStorage(STORAGE_KEYS.moods, [])
+    loadFromStorage(STORAGE_KEYS.moods, []),
   );
 
   // Meals State
   const [meals, setMeals] = useState<MealEntry[]>(() =>
-    loadFromStorage(STORAGE_KEYS.meals, [])
+    loadFromStorage(STORAGE_KEYS.meals, []),
   );
 
   // Habits State
   const [habits, setHabits] = useState<Habit[]>(() =>
-    loadFromStorage(STORAGE_KEYS.habits, defaultHabits)
+    loadFromStorage(STORAGE_KEYS.habits, defaultHabits),
   );
 
   // History State
   const [history, setHistory] = useState<HistoryEntry[]>(() =>
-    loadFromStorage(STORAGE_KEYS.history, [])
+    loadFromStorage(STORAGE_KEYS.history, []),
   );
 
   // ============================================
@@ -356,42 +361,60 @@ export const ZoraProvider: React.FC<{ children: React.ReactNode }> = ({
   // HYDRATION ACTIONS
   // ============================================
 
-  const addHistoryEntry = useCallback(
-    (entry: Omit<HistoryEntry, "id">) => {
-      setHistory((prev) => [{ ...entry, id: generateId() }, ...prev]);
+  const addHistoryEntry = useCallback((entry: Omit<HistoryEntry, "id">) => {
+    setHistory((prev) => [{ ...entry, id: generateId() }, ...prev]);
+  }, []);
+
+  const addWater = useCallback(
+    (amount = 250) => {
+      const now = new Date();
+      const log: HydrationLog = {
+        id: generateId(),
+        time: formatTime(now),
+        amount,
+        timestamp: now,
+      };
+
+      setHydration((prev) => ({
+        ...prev,
+        current: Math.min(prev.current + 1, 20),
+        logs: [...prev.logs, log],
+      }));
+
+      addHistoryEntry({
+        type: "hydration",
+        title: "Hidratação",
+        subtitle: `+${amount}ml`,
+        timestamp: now,
+        data: log,
+      });
     },
-    []
+    [addHistoryEntry],
   );
 
-  const addWater = useCallback((amount = 250) => {
-    const now = new Date();
-    const log: HydrationLog = {
-      id: generateId(),
-      time: formatTime(now),
-      amount,
-      timestamp: now,
-    };
-
-    setHydration((prev) => ({
-      ...prev,
-      current: Math.min(prev.current + 1, 20),
-      logs: [...prev.logs, log],
-    }));
-
-    addHistoryEntry({
-      type: "hydration",
-      title: "Hidratação",
-      subtitle: `+${amount}ml`,
-      timestamp: now,
-      data: log,
-    });
-  }, [addHistoryEntry]);
-
   const removeWater = useCallback(() => {
-    setHydration((prev) => ({
-      ...prev,
-      current: Math.max(prev.current - 1, 0),
-    }));
+    setHydration((prev) => {
+      const lastLog = prev.logs[prev.logs.length - 1];
+
+      if (!lastLog) return prev;
+
+      // remove do histórico
+      setHistory((historyPrev) =>
+        historyPrev.filter(
+          (entry) =>
+            !(
+              entry.type === "hydration" &&
+              (entry.data as HydrationLog).id === lastLog.id
+            ),
+        ),
+      );
+
+      return {
+        ...prev,
+        current: Math.max(prev.current - 1, 0),
+        logs: prev.logs.slice(0, -1),
+      };
+    });
   }, []);
 
   const setHydrationGoal = useCallback((goal: number) => {
@@ -406,13 +429,13 @@ export const ZoraProvider: React.FC<{ children: React.ReactNode }> = ({
   // MOOD ACTIONS
   // ============================================
 
-  const todayMood = moods.find(
-    (m) => getDateKey(new Date(m.timestamp)) === getTodayKey()
-  ) || null;
+  const todayMood =
+    moods.find((m) => getDateKey(new Date(m.timestamp)) === getTodayKey()) ||
+    null;
 
   const weekMoods = getWeekDays().map((day) => {
     const moodEntry = moods.find(
-      (m) => getDateKey(new Date(m.timestamp)) === day.date
+      (m) => getDateKey(new Date(m.timestamp)) === day.date,
     );
     return { ...day, mood: moodEntry?.mood || null };
   });
@@ -432,7 +455,7 @@ export const ZoraProvider: React.FC<{ children: React.ReactNode }> = ({
         // Replace today's mood if it exists
         const todayKey = getTodayKey();
         const filtered = prev.filter(
-          (m) => getDateKey(new Date(m.timestamp)) !== todayKey
+          (m) => getDateKey(new Date(m.timestamp)) !== todayKey,
         );
         return [...filtered, entry];
       });
@@ -453,7 +476,7 @@ export const ZoraProvider: React.FC<{ children: React.ReactNode }> = ({
         data: entry,
       });
     },
-    [addHistoryEntry]
+    [addHistoryEntry],
   );
 
   // ============================================
@@ -498,7 +521,7 @@ export const ZoraProvider: React.FC<{ children: React.ReactNode }> = ({
         data: entry,
       });
     },
-    [addHistoryEntry]
+    [addHistoryEntry],
   );
 
   // ============================================
@@ -516,7 +539,7 @@ export const ZoraProvider: React.FC<{ children: React.ReactNode }> = ({
       };
       setHabits((prev) => [...prev, newHabit]);
     },
-    []
+    [],
   );
 
   const getHabitCompletionStatus = useCallback(
@@ -525,7 +548,7 @@ export const ZoraProvider: React.FC<{ children: React.ReactNode }> = ({
       if (!habit) return false;
       return habit.completedDates.includes(getTodayKey());
     },
-    [habits]
+    [habits],
   );
 
   const toggleHabitCompletion = useCallback(
@@ -565,10 +588,10 @@ export const ZoraProvider: React.FC<{ children: React.ReactNode }> = ({
             completedDates: newCompletedDates,
             streak: newStreak,
           };
-        })
+        }),
       );
     },
-    [addHistoryEntry]
+    [addHistoryEntry],
   );
 
   const removeHabit = useCallback((habitId: string) => {
@@ -588,17 +611,17 @@ export const ZoraProvider: React.FC<{ children: React.ReactNode }> = ({
     (date: Date) => {
       const dateKey = getDateKey(date);
       return history.filter(
-        (entry) => getDateKey(new Date(entry.timestamp)) === dateKey
+        (entry) => getDateKey(new Date(entry.timestamp)) === dateKey,
       );
     },
-    [history]
+    [history],
   );
 
   const getHistoryByType = useCallback(
     (type: HistoryEntry["type"]) => {
       return history.filter((entry) => entry.type === type);
     },
-    [history]
+    [history],
   );
 
   // ============================================
@@ -614,14 +637,14 @@ export const ZoraProvider: React.FC<{ children: React.ReactNode }> = ({
 
       const monthMeals = monthHistory.filter((e) => e.type === "meal").length;
       const monthHydration = monthHistory.filter(
-        (e) => e.type === "hydration"
+        (e) => e.type === "hydration",
       ).length;
       const monthMoods = moods.filter((m) => {
         const date = new Date(m.timestamp);
         return date.getMonth() === month && date.getFullYear() === year;
       });
       const positiveMoods = monthMoods.filter((m) =>
-        ["great", "good"].includes(m.mood)
+        ["great", "good"].includes(m.mood),
       ).length;
       const monthHabits = monthHistory.filter((e) => e.type === "habit").length;
 
@@ -635,7 +658,7 @@ export const ZoraProvider: React.FC<{ children: React.ReactNode }> = ({
         habitsCompleted: monthHabits,
       };
     },
-    [history, moods]
+    [history, moods],
   );
 
   // ============================================
@@ -696,10 +719,10 @@ export const ZoraProvider: React.FC<{ children: React.ReactNode }> = ({
 
 // Export types for use in components
 export type {
-  MoodType,
-  MealType,
+  FrequencyType,
   Habit,
   HistoryEntry,
   HydrationState,
-  FrequencyType,
+  MealType,
+  MoodType,
 };
