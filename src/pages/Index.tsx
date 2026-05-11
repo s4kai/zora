@@ -1,8 +1,8 @@
 import BottomNav from "@/components/zora/BottomNav";
-import CalendarPlaceholder from "@/components/zora/CalendarPlaceholder";
 import DashboardFacade from "@/components/zora/DashboardFacade";
 import EmergencyAlert from "@/components/zora/EmergencyAlert";
-import HabitsPlaceholder from "@/components/zora/HabitsPlaceholder";
+import HabitsScreen from "@/components/zora/HabitsScreen";
+import HistoryScreen from "@/components/zora/HistoryScreen";
 import ProfileFacade from "@/components/zora/ProfileFacade";
 import SecureMode from "@/components/zora/SecureMode";
 import { ZoraProvider, useZora } from "@/contexts/ZoraContext";
@@ -18,8 +18,8 @@ const ZoraApp = () => {
     <div className="min-h-screen bg-background">
       <AnimatePresence mode="wait">
         {facadeTab === "home" && <DashboardFacade key="home" />}
-        {facadeTab === "calendar" && <CalendarPlaceholder key="calendar" />}
-        {facadeTab === "habits" && <HabitsPlaceholder key="habits" />}
+        {facadeTab === "calendar" && <HistoryScreen key="calendar" />}
+        {facadeTab === "habits" && <HabitsScreen key="habits" />}
         {facadeTab === "profile" && <ProfileFacade key="profile" />}
       </AnimatePresence>
       <BottomNav />

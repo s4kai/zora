@@ -1,7 +1,13 @@
 import { useZora } from "@/contexts/ZoraContext";
 import { motion } from "framer-motion";
-import { Apple, Coffee, Frown, Meh, Salad, Smile } from "lucide-react";
+import { Apple, ChevronRight, Coffee, Frown, Meh, Plus, Salad, Smile } from "lucide-react";
+import { useState } from "react";
 import HydrationRing from "./HydrationRing";
+import HydrationScreen from "./HydrationScreen";
+import MealScreen from "./MealScreen";
+import MoodScreen from "./MoodScreen";
+
+type SubScreen = "main" | "hydration" | "meal" | "mood";
 
 const moodEmojis = [
   { icon: Smile, label: "Bem", active: true },
@@ -20,6 +26,19 @@ const item = {
 
 const DashboardFacade = () => {
   const { userName } = useZora();
+  const [subScreen, setSubScreen] = useState<SubScreen>("main");
+
+  if (subScreen === "hydration") {
+    return <HydrationScreen onBack={() => setSubScreen("main")} />;
+  }
+
+  if (subScreen === "meal") {
+    return <MealScreen onBack={() => setSubScreen("main")} />;
+  }
+
+  if (subScreen === "mood") {
+    return <MoodScreen onBack={() => setSubScreen("main")} />;
+  }
 
   return (
     <motion.div
@@ -41,13 +60,27 @@ const DashboardFacade = () => {
         </div>
       </motion.div>
 
-      {/* Hydration */}
-      <motion.div
+      {/* Hydration - Clickable */}
+      <motion.button
         variants={item}
-        className="bg-card rounded-2xl p-5 shadow-zora flex justify-center"
+        onClick={() => setSubScreen("hydration")}
+        className="w-full bg-card rounded-2xl p-5 shadow-zora flex justify-between items-center hover:shadow-zora-lg transition-shadow text-left"
       >
         <HydrationRing current={3} goal={8} />
-      </motion.div>
+        <ChevronRight size={20} className="text-muted-foreground" />
+      </motion.button>
+
+      {/* Add Meal Button */}
+      <motion.button
+        variants={item}
+        onClick={() => setSubScreen("meal")}
+        className="w-full bg-primary rounded-2xl p-4 shadow-zora-lg flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+      >
+        <Plus size={20} className="text-primary-foreground" />
+        <span className="text-sm font-bold text-primary-foreground">
+          Registrar Refeição
+        </span>
+      </motion.button>
 
       {/* Last meal */}
       <motion.div
@@ -77,22 +110,26 @@ const DashboardFacade = () => {
         <p className="text-xs text-muted-foreground">Almoço • Hoje às 12:30</p>
       </motion.div>
 
-      {/* Mood tracking */}
-      <motion.div
+      {/* Mood tracking - Clickable */}
+      <motion.button
         variants={item}
-        className="bg-card rounded-2xl p-4 shadow-zora space-y-3"
+        onClick={() => setSubScreen("mood")}
+        className="w-full bg-card rounded-2xl p-4 shadow-zora space-y-3 hover:shadow-zora-lg transition-shadow text-left"
       >
-        <h3 className="text-sm font-bold text-foreground">
-          Acompanhamento de Humor
-        </h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold text-foreground">
+            Acompanhamento de Humor
+          </h3>
+          <ChevronRight size={18} className="text-muted-foreground" />
+        </div>
         <div className="flex gap-3 justify-center">
           {moodEmojis.map((mood) => (
-            <button
+            <div
               key={mood.label}
               className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${
                 mood.active
                   ? "bg-primary/10 ring-2 ring-primary/30"
-                  : "bg-muted hover:bg-muted/80"
+                  : "bg-muted"
               }`}
             >
               <mood.icon
@@ -106,10 +143,10 @@ const DashboardFacade = () => {
               >
                 {mood.label}
               </span>
-            </button>
+            </div>
           ))}
         </div>
-      </motion.div>
+      </motion.button>
 
       {/* Wellness tip */}
       <motion.div variants={item} className="bg-zora-mint/40 rounded-2xl p-4">
