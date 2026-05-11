@@ -1,3 +1,4 @@
+import { MealType, useZora } from "@/contexts/ZoraContext";
 import { motion } from "framer-motion";
 import {
   Apple,
@@ -29,16 +30,14 @@ const item = {
   show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
 
-type MealType = "breakfast" | "lunch" | "snack" | "dinner";
-
 const mealTypes = [
   {
     id: "breakfast" as MealType,
-    label: "Café",
+    label: "Cafe",
     icon: Coffee,
     bg: "bg-zora-peach",
   },
-  { id: "lunch" as MealType, label: "Almoço", icon: Sun, bg: "bg-zora-mint" },
+  { id: "lunch" as MealType, label: "Almoco", icon: Sun, bg: "bg-zora-mint" },
   {
     id: "snack" as MealType,
     label: "Lanche",
@@ -51,12 +50,14 @@ const mealTypes = [
 const foodCategories = [
   { id: "vegetables", label: "Vegetais", icon: Salad, color: "text-green-600" },
   { id: "fruits", label: "Frutas", icon: Apple, color: "text-orange-500" },
-  { id: "protein", label: "Proteína", icon: Utensils, color: "text-red-500" },
+  { id: "protein", label: "Proteina", icon: Utensils, color: "text-red-500" },
   { id: "carbs", label: "Carboidratos", icon: Pizza, color: "text-yellow-600" },
-  { id: "drinks", label: "Bebidas", icon: Coffee, color: "text-brown-500" },
+  { id: "drinks", label: "Bebidas", icon: Coffee, color: "text-amber-700" },
 ];
 
 const MealScreen = ({ onBack }: MealScreenProps) => {
+  const { addMeal } = useZora();
+
   const [selectedMealType, setSelectedMealType] = useState<MealType | null>(
     null
   );
@@ -74,13 +75,12 @@ const MealScreen = ({ onBack }: MealScreenProps) => {
 
   const handleSave = () => {
     if (selectedMealType && selectedFoods.length > 0) {
+      addMeal(selectedMealType, selectedFoods, mealNote);
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
-        setSelectedMealType(null);
-        setSelectedFoods([]);
-        setMealNote("");
-      }, 2000);
+        onBack();
+      }, 1500);
     }
   };
 
@@ -106,7 +106,7 @@ const MealScreen = ({ onBack }: MealScreenProps) => {
         </button>
         <div>
           <h1 className="text-xl font-bold text-foreground">
-            Registrar Refeição
+            Registrar Refeicao
           </h1>
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Clock size={12} />
@@ -127,10 +127,10 @@ const MealScreen = ({ onBack }: MealScreenProps) => {
           </div>
           <div>
             <p className="text-sm font-bold text-primary-foreground">
-              Refeição registrada!
+              Refeicao registrada!
             </p>
             <p className="text-xs text-primary-foreground/80">
-              Continue cuidando da sua alimentação 💚
+              Continue cuidando da sua alimentacao
             </p>
           </div>
         </motion.div>
@@ -141,7 +141,7 @@ const MealScreen = ({ onBack }: MealScreenProps) => {
         variants={item}
         className="bg-card rounded-2xl p-4 shadow-zora space-y-3"
       >
-        <h3 className="text-sm font-bold text-foreground">Tipo de Refeição</h3>
+        <h3 className="text-sm font-bold text-foreground">Tipo de Refeicao</h3>
         <div className="grid grid-cols-4 gap-2">
           {mealTypes.map((meal) => {
             const isSelected = selectedMealType === meal.id;
@@ -176,7 +176,7 @@ const MealScreen = ({ onBack }: MealScreenProps) => {
         className="bg-card rounded-2xl p-4 shadow-zora space-y-3"
       >
         <h3 className="text-sm font-bold text-foreground">
-          O que você comeu?
+          O que voce comeu?
         </h3>
         <div className="space-y-2">
           {foodCategories.map((food) => {
@@ -239,7 +239,7 @@ const MealScreen = ({ onBack }: MealScreenProps) => {
         <textarea
           value={mealNote}
           onChange={(e) => setMealNote(e.target.value)}
-          placeholder="Notas sobre a refeição..."
+          placeholder="Notas sobre a refeicao..."
           className="w-full p-3 rounded-xl bg-muted text-foreground text-sm placeholder:text-muted-foreground resize-none h-20 focus:outline-none focus:ring-2 focus:ring-primary"
         />
       </motion.div>
@@ -251,14 +251,14 @@ const MealScreen = ({ onBack }: MealScreenProps) => {
           disabled={!selectedMealType || selectedFoods.length === 0}
           className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold text-sm shadow-zora-lg disabled:opacity-40 transition-opacity"
         >
-          Salvar Refeição
+          Salvar Refeicao
         </button>
       </motion.div>
 
       {/* Quick Tips */}
       <motion.div variants={item} className="bg-zora-peach/40 rounded-2xl p-4">
         <p className="text-xs font-semibold text-foreground">
-          🥗 Dica Nutricional
+          Dica Nutricional
         </p>
         <p className="text-sm text-foreground mt-1">
           Tente incluir pelo menos 3 cores diferentes no seu prato para garantir

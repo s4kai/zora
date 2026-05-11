@@ -1,3 +1,4 @@
+import { FrequencyType, useZora } from "@/contexts/ZoraContext";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -33,98 +34,107 @@ const item = {
 const presetHabits = [
   {
     id: "water",
-    name: "Beber água",
-    icon: Droplets,
+    name: "Beber agua",
+    iconIndex: 1,
     color: "bg-blue-100",
     iconColor: "text-blue-500",
   },
   {
     id: "exercise",
     name: "Exercitar",
-    icon: Dumbbell,
+    iconIndex: 2,
     color: "bg-orange-100",
     iconColor: "text-orange-500",
   },
   {
     id: "sleep",
     name: "Dormir cedo",
-    icon: Moon,
+    iconIndex: 3,
     color: "bg-purple-100",
     iconColor: "text-purple-500",
   },
   {
     id: "meditate",
     name: "Meditar",
-    icon: Sparkles,
+    iconIndex: 7,
     color: "bg-yellow-100",
     iconColor: "text-yellow-600",
   },
   {
     id: "read",
     name: "Ler",
-    icon: Book,
+    iconIndex: 6,
     color: "bg-green-100",
     iconColor: "text-green-600",
   },
   {
     id: "vitamins",
     name: "Tomar vitaminas",
-    icon: Pill,
+    iconIndex: 0,
     color: "bg-pink-100",
     iconColor: "text-pink-500",
   },
   {
     id: "sunlight",
     name: "Tomar sol",
-    icon: Sun,
+    iconIndex: 4,
     color: "bg-amber-100",
     iconColor: "text-amber-500",
   },
   {
     id: "healthy",
-    name: "Comer saudável",
-    icon: Leaf,
+    name: "Comer saudavel",
+    iconIndex: 5,
     color: "bg-emerald-100",
     iconColor: "text-emerald-500",
   },
 ];
 
-const frequencies = [
-  { id: "daily", label: "Diário" },
-  { id: "weekdays", label: "Dias úteis" },
+const frequencies: { id: FrequencyType; label: string }[] = [
+  { id: "daily", label: "Diario" },
+  { id: "weekdays", label: "Dias uteis" },
   { id: "weekends", label: "Fins de semana" },
   { id: "custom", label: "Personalizado" },
 ];
 
-const days = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+const days = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab", "Dom"];
 
 const iconOptions = [
-  { icon: Heart, color: "text-red-500" },
-  { icon: Droplets, color: "text-blue-500" },
-  { icon: Dumbbell, color: "text-orange-500" },
-  { icon: Moon, color: "text-purple-500" },
-  { icon: Sun, color: "text-yellow-500" },
-  { icon: Leaf, color: "text-green-500" },
-  { icon: Book, color: "text-teal-500" },
-  { icon: Sparkles, color: "text-pink-500" },
+  { icon: Heart, color: "text-red-500", bg: "bg-red-100" },
+  { icon: Droplets, color: "text-blue-500", bg: "bg-blue-100" },
+  { icon: Dumbbell, color: "text-orange-500", bg: "bg-orange-100" },
+  { icon: Moon, color: "text-purple-500", bg: "bg-purple-100" },
+  { icon: Sun, color: "text-yellow-500", bg: "bg-yellow-100" },
+  { icon: Leaf, color: "text-green-500", bg: "bg-green-100" },
+  { icon: Book, color: "text-teal-500", bg: "bg-teal-100" },
+  { icon: Sparkles, color: "text-pink-500", bg: "bg-pink-100" },
 ];
 
+const presetIcons = [Droplets, Dumbbell, Moon, Sparkles, Book, Pill, Sun, Leaf];
+
 const AddHabitScreen = ({ onBack }: AddHabitScreenProps) => {
+  const { addHabit } = useZora();
+
   const [habitName, setHabitName] = useState("");
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
-  const [frequency, setFrequency] = useState("daily");
+  const [frequency, setFrequency] = useState<FrequencyType>("daily");
   const [selectedDays, setSelectedDays] = useState<number[]>([
     0, 1, 2, 3, 4, 5, 6,
   ]);
   const [reminder, setReminder] = useState(false);
   const [reminderTime, setReminderTime] = useState("08:00");
   const [selectedIcon, setSelectedIcon] = useState(0);
+  const [selectedColor, setSelectedColor] = useState("bg-blue-100");
+  const [selectedIconColor, setSelectedIconColor] = useState("text-blue-500");
   const [showSuccess, setShowSuccess] = useState(false);
   const [showCustom, setShowCustom] = useState(false);
 
   const handlePresetSelect = (preset: (typeof presetHabits)[0]) => {
     setSelectedPreset(preset.id);
     setHabitName(preset.name);
+    setSelectedIcon(preset.iconIndex);
+    setSelectedColor(preset.color);
+    setSelectedIconColor(preset.iconColor);
     setShowCustom(false);
   };
 
@@ -136,11 +146,21 @@ const AddHabitScreen = ({ onBack }: AddHabitScreenProps) => {
 
   const handleSave = () => {
     if (habitName.trim()) {
+      addHabit({
+        name: habitName.trim(),
+        iconIndex: selectedIcon,
+        color: selectedColor,
+        iconColor: selectedIconColor,
+        frequency,
+        selectedDays,
+        reminder,
+        reminderTime,
+      });
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
         onBack();
-      }, 2000);
+      }, 1500);
     }
   };
 
@@ -159,7 +179,7 @@ const AddHabitScreen = ({ onBack }: AddHabitScreenProps) => {
         >
           <ArrowLeft size={20} className="text-foreground" />
         </button>
-        <h1 className="text-xl font-bold text-foreground">Novo Hábito</h1>
+        <h1 className="text-xl font-bold text-foreground">Novo Habito</h1>
       </motion.div>
 
       {/* Success Message */}
@@ -174,10 +194,10 @@ const AddHabitScreen = ({ onBack }: AddHabitScreenProps) => {
           </div>
           <div>
             <p className="text-sm font-bold text-primary-foreground">
-              Hábito criado!
+              Habito criado!
             </p>
             <p className="text-xs text-primary-foreground/80">
-              Vamos construir juntos! 🌱
+              Vamos construir juntos!
             </p>
           </div>
         </motion.div>
@@ -188,10 +208,11 @@ const AddHabitScreen = ({ onBack }: AddHabitScreenProps) => {
         variants={item}
         className="bg-card rounded-2xl p-4 shadow-zora space-y-3"
       >
-        <h3 className="text-sm font-bold text-foreground">Sugestões</h3>
+        <h3 className="text-sm font-bold text-foreground">Sugestoes</h3>
         <div className="grid grid-cols-4 gap-2">
-          {presetHabits.map((preset) => {
+          {presetHabits.map((preset, idx) => {
             const isSelected = selectedPreset === preset.id;
+            const PresetIcon = presetIcons[idx] || Heart;
             return (
               <button
                 key={preset.id}
@@ -202,7 +223,7 @@ const AddHabitScreen = ({ onBack }: AddHabitScreenProps) => {
                     : `${preset.color} hover:opacity-80`
                 }`}
               >
-                <preset.icon
+                <PresetIcon
                   size={20}
                   className={isSelected ? "text-primary" : preset.iconColor}
                 />
@@ -233,7 +254,7 @@ const AddHabitScreen = ({ onBack }: AddHabitScreenProps) => {
             <Plus size={18} className="text-primary" />
           </div>
           <span className="text-sm font-medium text-foreground">
-            Criar hábito personalizado
+            Criar habito personalizado
           </span>
         </button>
       </motion.div>
@@ -246,7 +267,7 @@ const AddHabitScreen = ({ onBack }: AddHabitScreenProps) => {
           animate={{ opacity: 1, y: 0 }}
           className="bg-card rounded-2xl p-4 shadow-zora space-y-3"
         >
-          <h3 className="text-sm font-bold text-foreground">Nome do Hábito</h3>
+          <h3 className="text-sm font-bold text-foreground">Nome do Habito</h3>
           <input
             type="text"
             value={habitName}
@@ -257,14 +278,18 @@ const AddHabitScreen = ({ onBack }: AddHabitScreenProps) => {
 
           {/* Icon Selection */}
           <div className="space-y-2">
-            <p className="text-xs text-muted-foreground">Escolha um ícone</p>
+            <p className="text-xs text-muted-foreground">Escolha um icone</p>
             <div className="flex gap-2">
               {iconOptions.map((opt, idx) => {
                 const isSelected = selectedIcon === idx;
                 return (
                   <button
                     key={idx}
-                    onClick={() => setSelectedIcon(idx)}
+                    onClick={() => {
+                      setSelectedIcon(idx);
+                      setSelectedColor(opt.bg);
+                      setSelectedIconColor(opt.color);
+                    }}
                     className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
                       isSelected
                         ? "bg-primary/10 ring-2 ring-primary"
@@ -288,7 +313,7 @@ const AddHabitScreen = ({ onBack }: AddHabitScreenProps) => {
           animate={{ opacity: 1, y: 0 }}
           className="bg-card rounded-2xl p-4 shadow-zora space-y-3"
         >
-          <h3 className="text-sm font-bold text-foreground">Frequência</h3>
+          <h3 className="text-sm font-bold text-foreground">Frequencia</h3>
           <div className="flex flex-wrap gap-2">
             {frequencies.map((freq) => {
               const isSelected = frequency === freq.id;
@@ -347,7 +372,7 @@ const AddHabitScreen = ({ onBack }: AddHabitScreenProps) => {
               <div>
                 <p className="text-sm font-bold text-foreground">Lembrete</p>
                 <p className="text-xs text-muted-foreground">
-                  Receba uma notificação
+                  Receba uma notificacao
                 </p>
               </div>
             </div>
@@ -385,16 +410,16 @@ const AddHabitScreen = ({ onBack }: AddHabitScreenProps) => {
             onClick={handleSave}
             className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold text-sm shadow-zora-lg"
           >
-            Criar Hábito
+            Criar Habito
           </button>
         </motion.div>
       )}
 
       {/* Tips */}
       <motion.div variants={item} className="bg-zora-mint/40 rounded-2xl p-4">
-        <p className="text-xs font-semibold text-primary">💡 Dica</p>
+        <p className="text-xs font-semibold text-primary">Dica</p>
         <p className="text-sm text-foreground mt-1">
-          Comece com hábitos pequenos e aumente gradualmente. Consistência é
+          Comece com habitos pequenos e aumente gradualmente. Consistencia e
           mais importante que intensidade!
         </p>
       </motion.div>

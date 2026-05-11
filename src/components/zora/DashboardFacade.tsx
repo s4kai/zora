@@ -9,12 +9,6 @@ import MoodScreen from "./MoodScreen";
 
 type SubScreen = "main" | "hydration" | "meal" | "mood";
 
-const moodEmojis = [
-  { icon: Smile, label: "Bem", active: true },
-  { icon: Meh, label: "Ok", active: false },
-  { icon: Frown, label: "Mal", active: false },
-];
-
 const container = {
   hidden: { opacity: 0 },
   show: { opacity: 1, transition: { staggerChildren: 0.08 } },
@@ -24,8 +18,14 @@ const item = {
   show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
 
+const moodOptions = [
+  { id: "good", icon: Smile, label: "Bem" },
+  { id: "neutral", icon: Meh, label: "Ok" },
+  { id: "bad", icon: Frown, label: "Mal" },
+];
+
 const DashboardFacade = () => {
-  const { userName } = useZora();
+  const { userName, hydration, todayMood, lastMeal } = useZora();
   const [subScreen, setSubScreen] = useState<SubScreen>("main");
 
   if (subScreen === "hydration") {
@@ -39,6 +39,30 @@ const DashboardFacade = () => {
   if (subScreen === "mood") {
     return <MoodScreen onBack={() => setSubScreen("main")} />;
   }
+
+  // Format last meal time
+  const getLastMealInfo = () => {
+    if (!lastMeal) return null;
+
+    const mealLabels: Record<string, string> = {
+      breakfast: "Cafe da manha",
+      lunch: "Almoco",
+      snack: "Lanche",
+      dinner: "Jantar",
+    };
+
+    const time = new Date(lastMeal.timestamp).toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    return {
+      type: mealLabels[lastMeal.type] || lastMeal.type,
+      time,
+    };
+  };
+
+  const lastMealInfo = getLastMealInfo();
 
   return (
     <motion.div
@@ -55,8 +79,8 @@ const DashboardFacade = () => {
           </span>
         </div>
         <div>
-          <p className="text-sm text-muted-foreground">Bom dia ☀️</p>
-          <h1 className="text-xl font-bold text-foreground">Olá, {userName}</h1>
+          <p className="text-sm text-muted-foreground">Bom dia</p>
+          <h1 className="text-xl font-bold text-foreground">Ola, {userName}</h1>
         </div>
       </motion.div>
 
@@ -66,7 +90,7 @@ const DashboardFacade = () => {
         onClick={() => setSubScreen("hydration")}
         className="w-full bg-card rounded-2xl p-5 shadow-zora flex justify-between items-center hover:shadow-zora-lg transition-shadow text-left"
       >
-        <HydrationRing current={3} goal={8} />
+        <HydrationRing current={hydration.current} goal={hydration.goal} />
         <ChevronRight size={20} className="text-muted-foreground" />
       </motion.button>
 
@@ -78,7 +102,7 @@ const DashboardFacade = () => {
       >
         <Plus size={20} className="text-primary-foreground" />
         <span className="text-sm font-bold text-primary-foreground">
-          Registrar Refeição
+          Registrar Refeicao
         </span>
       </motion.button>
 
@@ -88,11 +112,11 @@ const DashboardFacade = () => {
         className="bg-card rounded-2xl p-4 shadow-zora space-y-3"
       >
         <h3 className="text-sm font-bold text-foreground">
-          Última Refeição Registrada
+          Ultima Refeicao Registrada
         </h3>
         <div className="flex gap-3">
           {[
-            { icon: Coffee, label: "Café", bg: "bg-zora-peach" },
+            { icon: Coffee, label: "Cafe", bg: "bg-zora-peach" },
             { icon: Apple, label: "Fruta", bg: "bg-zora-mint" },
             { icon: Salad, label: "Salada", bg: "bg-zora-lavender" },
           ].map((food) => (
@@ -107,7 +131,11 @@ const DashboardFacade = () => {
             </div>
           ))}
         </div>
-        <p className="text-xs text-muted-foreground">Almoço • Hoje às 12:30</p>
+        <p className="text-xs text-muted-foreground">
+          {lastMealInfo
+            ? `${lastMealInfo.type} - Hoje as ${lastMealInfo.time}`
+            : "Nenhuma refeicao registrada ainda"}
+        </p>
       </motion.div>
 
       {/* Mood tracking - Clickable */}
@@ -123,39 +151,46 @@ const DashboardFacade = () => {
           <ChevronRight size={18} className="text-muted-foreground" />
         </div>
         <div className="flex gap-3 justify-center">
-          {moodEmojis.map((mood) => (
-            <div
-              key={mood.label}
-              className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${
-                mood.active
-                  ? "bg-primary/10 ring-2 ring-primary/30"
-                  : "bg-muted"
-              }`}
-            >
-              <mood.icon
-                size={24}
-                className={
-                  mood.active ? "text-primary" : "text-muted-foreground"
-                }
-              />
-              <span
-                className={`text-xs font-semibold ${mood.active ? "text-primary" : "text-muted-foreground"}`}
+          {moodOptions.map((mood) => {
+            const isActive =
+              todayMood?.mood === mood.id ||
+              (todayMood?.mood === "great" && mood.id === "good") ||
+              (todayMood?.mood === "terrible" && mood.id === "bad");
+
+            return (
+              <div
+                key={mood.id}
+                className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${
+                  isActive
+                    ? "bg-primary/10 ring-2 ring-primary/30"
+                    : "bg-muted"
+                }`}
               >
-                {mood.label}
-              </span>
-            </div>
-          ))}
+                <mood.icon
+                  size={24}
+                  className={
+                    isActive ? "text-primary" : "text-muted-foreground"
+                  }
+                />
+                <span
+                  className={`text-xs font-semibold ${isActive ? "text-primary" : "text-muted-foreground"}`}
+                >
+                  {mood.label}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </motion.button>
 
       {/* Wellness tip */}
       <motion.div variants={item} className="bg-zora-mint/40 rounded-2xl p-4">
         <p className="text-xs font-semibold text-primary">
-          💡 Dica de Bem-Estar
+          Dica de Bem-Estar
         </p>
         <p className="text-sm text-foreground mt-1">
-          Tente fazer uma caminhada de 10 minutos após o almoço. Pequenos
-          hábitos fazem grande diferença!
+          Tente fazer uma caminhada de 10 minutos apos o almoco. Pequenos
+          habitos fazem grande diferenca!
         </p>
       </motion.div>
     </motion.div>

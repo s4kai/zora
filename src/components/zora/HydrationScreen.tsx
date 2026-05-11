@@ -1,6 +1,6 @@
+import { useZora } from "@/contexts/ZoraContext";
 import { motion } from "framer-motion";
 import { ArrowLeft, Droplets, Minus, Plus, Target } from "lucide-react";
-import { useState } from "react";
 
 interface HydrationScreenProps {
   onBack: () => void;
@@ -17,20 +17,18 @@ const item = {
 };
 
 const HydrationScreen = ({ onBack }: HydrationScreenProps) => {
-  const [current, setCurrent] = useState(3);
-  const [goal, setGoal] = useState(8);
+  const { hydration, addWater, removeWater, setHydrationGoal } = useZora();
+
+  const { current, goal, logs } = hydration;
   const progress = Math.min(current / goal, 1);
   const circumference = 2 * Math.PI * 70;
   const strokeDashoffset = circumference * (1 - progress);
 
-  const addWater = () => setCurrent((prev) => Math.min(prev + 1, 20));
-  const removeWater = () => setCurrent((prev) => Math.max(prev - 1, 0));
-
-  const todayLog = [
-    { time: "07:30", amount: "250ml" },
-    { time: "09:15", amount: "250ml" },
-    { time: "12:00", amount: "500ml" },
-  ];
+  // Get today's logs only
+  const today = new Date().toISOString().split("T")[0];
+  const todayLogs = logs.filter(
+    (log) => new Date(log.timestamp).toISOString().split("T")[0] === today
+  );
 
   return (
     <motion.div
@@ -47,7 +45,7 @@ const HydrationScreen = ({ onBack }: HydrationScreenProps) => {
         >
           <ArrowLeft size={20} className="text-foreground" />
         </button>
-        <h1 className="text-xl font-bold text-foreground">Hidratação</h1>
+        <h1 className="text-xl font-bold text-foreground">Hidratacao</h1>
       </motion.div>
 
       {/* Progress Ring */}
@@ -105,7 +103,7 @@ const HydrationScreen = ({ onBack }: HydrationScreenProps) => {
             <p className="text-xs text-muted-foreground">250ml</p>
           </div>
           <button
-            onClick={addWater}
+            onClick={() => addWater(250)}
             className="w-14 h-14 rounded-full bg-primary flex items-center justify-center shadow-zora"
           >
             <Plus size={24} className="text-primary-foreground" />
@@ -119,7 +117,7 @@ const HydrationScreen = ({ onBack }: HydrationScreenProps) => {
             className="bg-zora-mint/50 rounded-xl px-4 py-2"
           >
             <p className="text-sm font-bold text-primary">
-              🎉 Meta atingida! Parabéns!
+              Meta atingida! Parabens!
             </p>
           </motion.div>
         )}
@@ -136,7 +134,7 @@ const HydrationScreen = ({ onBack }: HydrationScreenProps) => {
               <Target size={20} className="text-foreground" />
             </div>
             <div>
-              <p className="text-sm font-bold text-foreground">Meta Diária</p>
+              <p className="text-sm font-bold text-foreground">Meta Diaria</p>
               <p className="text-xs text-muted-foreground">
                 Ajuste conforme sua necessidade
               </p>
@@ -144,7 +142,7 @@ const HydrationScreen = ({ onBack }: HydrationScreenProps) => {
           </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setGoal((prev) => Math.max(prev - 1, 4))}
+              onClick={() => setHydrationGoal(Math.max(goal - 1, 4))}
               className="w-8 h-8 rounded-full bg-muted flex items-center justify-center"
             >
               <Minus size={16} className="text-foreground" />
@@ -153,7 +151,7 @@ const HydrationScreen = ({ onBack }: HydrationScreenProps) => {
               {goal}
             </span>
             <button
-              onClick={() => setGoal((prev) => Math.min(prev + 1, 15))}
+              onClick={() => setHydrationGoal(Math.min(goal + 1, 15))}
               className="w-8 h-8 rounded-full bg-muted flex items-center justify-center"
             >
               <Plus size={16} className="text-foreground" />
@@ -169,30 +167,36 @@ const HydrationScreen = ({ onBack }: HydrationScreenProps) => {
       >
         <h3 className="text-sm font-bold text-foreground">Registro de Hoje</h3>
         <div className="space-y-2">
-          {todayLog.map((log, idx) => (
-            <div
-              key={idx}
-              className="flex items-center justify-between py-2 border-b border-border last:border-0"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-zora-mint/50 flex items-center justify-center">
-                  <Droplets size={14} className="text-primary" />
+          {todayLogs.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-2">
+              Nenhum registro ainda. Comece a beber agua!
+            </p>
+          ) : (
+            todayLogs.slice(-5).reverse().map((log) => (
+              <div
+                key={log.id}
+                className="flex items-center justify-between py-2 border-b border-border last:border-0"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-zora-mint/50 flex items-center justify-center">
+                    <Droplets size={14} className="text-primary" />
+                  </div>
+                  <span className="text-sm font-medium text-foreground">
+                    {log.amount}ml
+                  </span>
                 </div>
-                <span className="text-sm font-medium text-foreground">
-                  {log.amount}
-                </span>
+                <span className="text-xs text-muted-foreground">{log.time}</span>
               </div>
-              <span className="text-xs text-muted-foreground">{log.time}</span>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </motion.div>
 
       {/* Tips */}
       <motion.div variants={item} className="bg-zora-mint/40 rounded-2xl p-4">
-        <p className="text-xs font-semibold text-primary">💧 Dica</p>
+        <p className="text-xs font-semibold text-primary">Dica</p>
         <p className="text-sm text-foreground mt-1">
-          Beba um copo de água ao acordar para hidratar o corpo após o sono.
+          Beba um copo de agua ao acordar para hidratar o corpo apos o sono.
         </p>
       </motion.div>
     </motion.div>

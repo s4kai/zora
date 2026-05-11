@@ -1,3 +1,4 @@
+import { HistoryEntry, useZora } from "@/contexts/ZoraContext";
 import { motion } from "framer-motion";
 import {
   Apple,
@@ -8,13 +9,14 @@ import {
   Droplets,
   Dumbbell,
   Frown,
+  Heart,
   Meh,
   Moon,
   Salad,
   Smile,
   Sparkles,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 const container = {
   hidden: { opacity: 0 },
@@ -30,16 +32,16 @@ type TabType = "all" | "meals" | "hydration" | "mood" | "habits";
 
 const tabs = [
   { id: "all" as TabType, label: "Tudo" },
-  { id: "meals" as TabType, label: "Refeições" },
-  { id: "hydration" as TabType, label: "Água" },
+  { id: "meals" as TabType, label: "Refeicoes" },
+  { id: "hydration" as TabType, label: "Agua" },
   { id: "mood" as TabType, label: "Humor" },
-  { id: "habits" as TabType, label: "Hábitos" },
+  { id: "habits" as TabType, label: "Habitos" },
 ];
 
 const months = [
   "Janeiro",
   "Fevereiro",
-  "Março",
+  "Marco",
   "Abril",
   "Maio",
   "Junho",
@@ -51,170 +53,22 @@ const months = [
   "Dezembro",
 ];
 
-// Mock data for history
-const mockHistory = [
-  {
-    date: "Hoje",
-    items: [
-      {
-        type: "meal",
-        time: "12:30",
-        title: "Almoço",
-        subtitle: "Salada, frango, arroz",
-        icon: Salad,
-        color: "bg-green-100",
-        iconColor: "text-green-600",
-      },
-      {
-        type: "hydration",
-        time: "14:00",
-        title: "Hidratação",
-        subtitle: "6/8 copos",
-        icon: Droplets,
-        color: "bg-blue-100",
-        iconColor: "text-blue-500",
-      },
-      {
-        type: "mood",
-        time: "18:00",
-        title: "Humor",
-        subtitle: "Bem - Exercício, Trabalho",
-        icon: Smile,
-        color: "bg-yellow-100",
-        iconColor: "text-yellow-600",
-      },
-      {
-        type: "habit",
-        time: "07:30",
-        title: "Meditar",
-        subtitle: "10 minutos - Completo",
-        icon: Sparkles,
-        color: "bg-purple-100",
-        iconColor: "text-purple-500",
-      },
-    ],
-  },
-  {
-    date: "Ontem",
-    items: [
-      {
-        type: "meal",
-        time: "08:00",
-        title: "Café da manhã",
-        subtitle: "Pão, café, fruta",
-        icon: Coffee,
-        color: "bg-orange-100",
-        iconColor: "text-orange-500",
-      },
-      {
-        type: "meal",
-        time: "12:45",
-        title: "Almoço",
-        subtitle: "Macarrão, carne",
-        icon: Salad,
-        color: "bg-green-100",
-        iconColor: "text-green-600",
-      },
-      {
-        type: "hydration",
-        time: "20:00",
-        title: "Hidratação",
-        subtitle: "8/8 copos ✓",
-        icon: Droplets,
-        color: "bg-blue-100",
-        iconColor: "text-blue-500",
-      },
-      {
-        type: "mood",
-        time: "21:00",
-        title: "Humor",
-        subtitle: "Ótimo - Família, Hobby",
-        icon: Sparkles,
-        color: "bg-yellow-100",
-        iconColor: "text-yellow-600",
-      },
-      {
-        type: "habit",
-        time: "06:00",
-        title: "Exercitar",
-        subtitle: "30 minutos - Completo",
-        icon: Dumbbell,
-        color: "bg-red-100",
-        iconColor: "text-red-500",
-      },
-      {
-        type: "habit",
-        time: "22:00",
-        title: "Dormir cedo",
-        subtitle: "Completo",
-        icon: Moon,
-        color: "bg-indigo-100",
-        iconColor: "text-indigo-500",
-      },
-    ],
-  },
-  {
-    date: "Quarta, 8 Mai",
-    items: [
-      {
-        type: "meal",
-        time: "13:00",
-        title: "Almoço",
-        subtitle: "Sushi, salada",
-        icon: Apple,
-        color: "bg-green-100",
-        iconColor: "text-green-600",
-      },
-      {
-        type: "hydration",
-        time: "18:00",
-        title: "Hidratação",
-        subtitle: "5/8 copos",
-        icon: Droplets,
-        color: "bg-blue-100",
-        iconColor: "text-blue-500",
-      },
-      {
-        type: "mood",
-        time: "19:00",
-        title: "Humor",
-        subtitle: "Normal - Trabalho",
-        icon: Meh,
-        color: "bg-gray-100",
-        iconColor: "text-gray-500",
-      },
-    ],
-  },
-  {
-    date: "Terça, 7 Mai",
-    items: [
-      {
-        type: "mood",
-        time: "20:00",
-        title: "Humor",
-        subtitle: "Mal - Sono, Saúde",
-        icon: Frown,
-        color: "bg-orange-100",
-        iconColor: "text-orange-500",
-      },
-      {
-        type: "hydration",
-        time: "21:00",
-        title: "Hidratação",
-        subtitle: "4/8 copos",
-        icon: Droplets,
-        color: "bg-blue-100",
-        iconColor: "text-blue-500",
-      },
-    ],
-  },
-];
+// Icon mapping for history items
+const typeIcons: Record<string, { icon: typeof Droplets; color: string; bg: string }> = {
+  hydration: { icon: Droplets, color: "text-blue-500", bg: "bg-blue-100" },
+  meal: { icon: Salad, color: "text-green-600", bg: "bg-green-100" },
+  mood: { icon: Smile, color: "text-yellow-600", bg: "bg-yellow-100" },
+  habit: { icon: Sparkles, color: "text-purple-500", bg: "bg-purple-100" },
+};
 
 const HistoryScreen = () => {
+  const { history, getMonthStats } = useZora();
+
   const [activeTab, setActiveTab] = useState<TabType>("all");
-  const [currentMonth, setCurrentMonth] = useState(4); // May
-  const [currentYear, setCurrentYear] = useState(2026);
-  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const today = new Date();
+  const [currentMonth, setCurrentMonth] = useState(today.getMonth());
+  const [currentYear, setCurrentYear] = useState(today.getFullYear());
+  const [selectedDay, setSelectedDay] = useState<number | null>(today.getDate());
 
   const prevMonth = () => {
     if (currentMonth === 0) {
@@ -223,6 +77,7 @@ const HistoryScreen = () => {
     } else {
       setCurrentMonth((prev) => prev - 1);
     }
+    setSelectedDay(null);
   };
 
   const nextMonth = () => {
@@ -232,6 +87,7 @@ const HistoryScreen = () => {
     } else {
       setCurrentMonth((prev) => prev + 1);
     }
+    setSelectedDay(null);
   };
 
   // Generate calendar days
@@ -247,30 +103,92 @@ const HistoryScreen = () => {
   const daysInMonth = getDaysInMonth(currentMonth, currentYear);
   const firstDay = getFirstDayOfMonth(currentMonth, currentYear);
 
-  const calendarDays = [];
-  for (let i = 0; i < firstDay; i++) {
-    calendarDays.push(null);
-  }
-  for (let i = 1; i <= daysInMonth; i++) {
-    calendarDays.push(i);
-  }
+  const calendarDays = useMemo(() => {
+    const days: (number | null)[] = [];
+    for (let i = 0; i < firstDay; i++) {
+      days.push(null);
+    }
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(i);
+    }
+    return days;
+  }, [firstDay, daysInMonth]);
 
-  // Mock activity data for calendar
-  const activityDays = [1, 3, 5, 7, 8, 9, 10, 12, 14, 15, 17, 19, 20, 22, 24];
+  // Get days with activity
+  const activityDays = useMemo(() => {
+    const daysSet = new Set<number>();
+    history.forEach((entry) => {
+      const date = new Date(entry.timestamp);
+      if (date.getMonth() === currentMonth && date.getFullYear() === currentYear) {
+        daysSet.add(date.getDate());
+      }
+    });
+    return daysSet;
+  }, [history, currentMonth, currentYear]);
 
-  const filteredHistory = mockHistory.map((day) => ({
-    ...day,
-    items:
-      activeTab === "all"
-        ? day.items
-        : day.items.filter((item) => {
-            if (activeTab === "meals") return item.type === "meal";
-            if (activeTab === "hydration") return item.type === "hydration";
-            if (activeTab === "mood") return item.type === "mood";
-            if (activeTab === "habits") return item.type === "habit";
-            return true;
-          }),
-  })).filter((day) => day.items.length > 0);
+  // Group history by date
+  const groupedHistory = useMemo(() => {
+    const filtered = history.filter((entry) => {
+      if (activeTab === "all") return true;
+      if (activeTab === "meals") return entry.type === "meal";
+      if (activeTab === "hydration") return entry.type === "hydration";
+      if (activeTab === "mood") return entry.type === "mood";
+      if (activeTab === "habits") return entry.type === "habit";
+      return true;
+    });
+
+    // Filter by selected day if one is selected
+    const dayFiltered = selectedDay
+      ? filtered.filter((entry) => {
+          const date = new Date(entry.timestamp);
+          return (
+            date.getDate() === selectedDay &&
+            date.getMonth() === currentMonth &&
+            date.getFullYear() === currentYear
+          );
+        })
+      : filtered.filter((entry) => {
+          const date = new Date(entry.timestamp);
+          return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+        });
+
+    // Group by date string
+    const groups: Record<string, HistoryEntry[]> = {};
+    dayFiltered.forEach((entry) => {
+      const date = new Date(entry.timestamp);
+      const todayStr = new Date().toDateString();
+      const yesterdayStr = new Date(Date.now() - 86400000).toDateString();
+      const entryDateStr = date.toDateString();
+
+      let label: string;
+      if (entryDateStr === todayStr) {
+        label = "Hoje";
+      } else if (entryDateStr === yesterdayStr) {
+        label = "Ontem";
+      } else {
+        label = date.toLocaleDateString("pt-BR", {
+          weekday: "long",
+          day: "numeric",
+          month: "short",
+        });
+      }
+
+      if (!groups[label]) {
+        groups[label] = [];
+      }
+      groups[label].push(entry);
+    });
+
+    return Object.entries(groups).map(([date, items]) => ({
+      date,
+      items: items.sort(
+        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      ),
+    }));
+  }, [history, activeTab, selectedDay, currentMonth, currentYear]);
+
+  const monthStats = getMonthStats(currentMonth, currentYear);
+  const isCurrentMonth = currentMonth === today.getMonth() && currentYear === today.getFullYear();
 
   return (
     <motion.div
@@ -284,7 +202,7 @@ const HistoryScreen = () => {
         <div className="w-10 h-10 rounded-full bg-zora-lavender flex items-center justify-center">
           <Calendar size={20} className="text-foreground" />
         </div>
-        <h1 className="text-xl font-bold text-foreground">Histórico</h1>
+        <h1 className="text-xl font-bold text-foreground">Historico</h1>
       </motion.div>
 
       {/* Calendar */}
@@ -313,7 +231,7 @@ const HistoryScreen = () => {
 
         {/* Weekday Headers */}
         <div className="grid grid-cols-7 gap-1 mb-2">
-          {["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"].map((day) => (
+          {["Seg", "Ter", "Qua", "Qui", "Sex", "Sab", "Dom"].map((day) => (
             <div
               key={day}
               className="text-center text-[10px] font-semibold text-muted-foreground py-1"
@@ -326,14 +244,14 @@ const HistoryScreen = () => {
         {/* Calendar Grid */}
         <div className="grid grid-cols-7 gap-1">
           {calendarDays.map((day, idx) => {
-            const isToday = day === 10 && currentMonth === 4 && currentYear === 2026;
-            const hasActivity = day !== null && activityDays.includes(day);
+            const isToday = day === today.getDate() && isCurrentMonth;
+            const hasActivity = day !== null && activityDays.has(day);
             const isSelected = selectedDay === day;
 
             return (
               <button
                 key={idx}
-                onClick={() => day && setSelectedDay(day)}
+                onClick={() => day && setSelectedDay(day === selectedDay ? null : day)}
                 disabled={day === null}
                 className={`aspect-square rounded-full flex flex-col items-center justify-center text-xs font-medium transition-all ${
                   day === null
@@ -377,42 +295,59 @@ const HistoryScreen = () => {
 
       {/* History List */}
       <motion.div variants={item} className="space-y-4">
-        {filteredHistory.map((day, dayIdx) => (
-          <div key={dayIdx} className="space-y-2">
-            <h3 className="text-sm font-bold text-foreground">{day.date}</h3>
-            <div className="space-y-2">
-              {day.items.map((historyItem, itemIdx) => (
-                <motion.div
-                  key={itemIdx}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: itemIdx * 0.05 }}
-                  className="bg-card rounded-xl p-3 shadow-zora flex items-center gap-3"
-                >
-                  <div
-                    className={`w-10 h-10 rounded-full ${historyItem.color} flex items-center justify-center`}
-                  >
-                    <historyItem.icon
-                      size={18}
-                      className={historyItem.iconColor}
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-foreground">
-                      {historyItem.title}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {historyItem.subtitle}
-                    </p>
-                  </div>
-                  <span className="text-xs text-muted-foreground">
-                    {historyItem.time}
-                  </span>
-                </motion.div>
-              ))}
-            </div>
+        {groupedHistory.length === 0 ? (
+          <div className="bg-card rounded-2xl p-6 shadow-zora text-center">
+            <p className="text-sm text-muted-foreground">
+              {selectedDay
+                ? "Nenhum registro neste dia"
+                : "Nenhum registro neste mes"}
+            </p>
           </div>
-        ))}
+        ) : (
+          groupedHistory.map((day, dayIdx) => (
+            <div key={dayIdx} className="space-y-2">
+              <h3 className="text-sm font-bold text-foreground capitalize">
+                {day.date}
+              </h3>
+              <div className="space-y-2">
+                {day.items.map((historyItem, itemIdx) => {
+                  const iconConfig = typeIcons[historyItem.type] || typeIcons.habit;
+                  const IconComponent = iconConfig.icon;
+
+                  return (
+                    <motion.div
+                      key={historyItem.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: itemIdx * 0.05 }}
+                      className="bg-card rounded-xl p-3 shadow-zora flex items-center gap-3"
+                    >
+                      <div
+                        className={`w-10 h-10 rounded-full ${iconConfig.bg} flex items-center justify-center`}
+                      >
+                        <IconComponent size={18} className={iconConfig.color} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-foreground">
+                          {historyItem.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {historyItem.subtitle}
+                        </p>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(historyItem.timestamp).toLocaleTimeString("pt-BR", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
+          ))
+        )}
       </motion.div>
 
       {/* Stats Summary */}
@@ -421,24 +356,30 @@ const HistoryScreen = () => {
         className="bg-zora-mint/40 rounded-2xl p-4 space-y-3"
       >
         <h3 className="text-sm font-bold text-foreground">
-          Resumo do Mês
+          Resumo de {months[currentMonth]}
         </h3>
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-card rounded-xl p-3 text-center">
-            <p className="text-2xl font-bold text-primary">24</p>
-            <p className="text-xs text-muted-foreground">Refeições</p>
+            <p className="text-2xl font-bold text-primary">{monthStats.totalMeals}</p>
+            <p className="text-xs text-muted-foreground">Refeicoes</p>
           </div>
           <div className="bg-card rounded-xl p-3 text-center">
-            <p className="text-2xl font-bold text-blue-500">156L</p>
-            <p className="text-xs text-muted-foreground">Água</p>
+            <p className="text-2xl font-bold text-blue-500">
+              {monthStats.totalWaterLiters}L
+            </p>
+            <p className="text-xs text-muted-foreground">Agua</p>
           </div>
           <div className="bg-card rounded-xl p-3 text-center">
-            <p className="text-2xl font-bold text-yellow-600">85%</p>
+            <p className="text-2xl font-bold text-yellow-600">
+              {monthStats.positiveMoodPercentage}%
+            </p>
             <p className="text-xs text-muted-foreground">Humor Positivo</p>
           </div>
           <div className="bg-card rounded-xl p-3 text-center">
-            <p className="text-2xl font-bold text-purple-500">18</p>
-            <p className="text-xs text-muted-foreground">Hábitos Completos</p>
+            <p className="text-2xl font-bold text-purple-500">
+              {monthStats.habitsCompleted}
+            </p>
+            <p className="text-xs text-muted-foreground">Habitos Completos</p>
           </div>
         </div>
       </motion.div>

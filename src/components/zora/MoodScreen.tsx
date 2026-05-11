@@ -1,3 +1,4 @@
+import { MoodType, useZora } from "@/contexts/ZoraContext";
 import { motion } from "framer-motion";
 import {
   Angry,
@@ -25,12 +26,10 @@ const item = {
   show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
 
-type MoodType = "great" | "good" | "neutral" | "bad" | "terrible";
-
 const moods = [
   {
     id: "great" as MoodType,
-    label: "Ótimo",
+    label: "Otimo",
     icon: Sparkles,
     color: "text-yellow-500",
     bg: "bg-yellow-100",
@@ -62,7 +61,7 @@ const moods = [
   },
   {
     id: "terrible" as MoodType,
-    label: "Péssimo",
+    label: "Pessimo",
     icon: Angry,
     color: "text-red-500",
     bg: "bg-red-100",
@@ -71,20 +70,26 @@ const moods = [
 ];
 
 const factors = [
-  { id: "sleep", label: "Sono", emoji: "😴" },
-  { id: "work", label: "Trabalho", emoji: "💼" },
-  { id: "exercise", label: "Exercício", emoji: "🏃" },
-  { id: "family", label: "Família", emoji: "👨‍👩‍👧" },
-  { id: "food", label: "Alimentação", emoji: "🍎" },
-  { id: "health", label: "Saúde", emoji: "💊" },
-  { id: "social", label: "Social", emoji: "👥" },
-  { id: "hobby", label: "Hobby", emoji: "🎨" },
+  { id: "sleep", label: "Sono", emoji: "Sono" },
+  { id: "work", label: "Trabalho", emoji: "Trabalho" },
+  { id: "exercise", label: "Exercicio", emoji: "Exercicio" },
+  { id: "family", label: "Familia", emoji: "Familia" },
+  { id: "food", label: "Alimentacao", emoji: "Alimentacao" },
+  { id: "health", label: "Saude", emoji: "Saude" },
+  { id: "social", label: "Social", emoji: "Social" },
+  { id: "hobby", label: "Hobby", emoji: "Hobby" },
 ];
 
 const MoodScreen = ({ onBack }: MoodScreenProps) => {
-  const [selectedMood, setSelectedMood] = useState<MoodType | null>(null);
-  const [selectedFactors, setSelectedFactors] = useState<string[]>([]);
-  const [note, setNote] = useState("");
+  const { saveMood, todayMood, weekMoods } = useZora();
+
+  const [selectedMood, setSelectedMood] = useState<MoodType | null>(
+    todayMood?.mood || null
+  );
+  const [selectedFactors, setSelectedFactors] = useState<string[]>(
+    todayMood?.factors || []
+  );
+  const [note, setNote] = useState(todayMood?.note || "");
   const [showSuccess, setShowSuccess] = useState(false);
 
   const toggleFactor = (factorId: string) => {
@@ -97,25 +102,14 @@ const MoodScreen = ({ onBack }: MoodScreenProps) => {
 
   const handleSave = () => {
     if (selectedMood) {
+      saveMood(selectedMood, selectedFactors, note);
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
-        setSelectedMood(null);
-        setSelectedFactors([]);
-        setNote("");
-      }, 2000);
+        onBack();
+      }, 1500);
     }
   };
-
-  const weekMoods = [
-    { day: "Seg", mood: "good" },
-    { day: "Ter", mood: "great" },
-    { day: "Qua", mood: "neutral" },
-    { day: "Qui", mood: "good" },
-    { day: "Sex", mood: "bad" },
-    { day: "Sáb", mood: "great" },
-    { day: "Dom", mood: null },
-  ];
 
   const getMoodColor = (moodId: string | null) => {
     const found = moods.find((m) => m.id === moodId);
@@ -139,7 +133,7 @@ const MoodScreen = ({ onBack }: MoodScreenProps) => {
         </button>
         <div>
           <h1 className="text-xl font-bold text-foreground">
-            Como você está?
+            Como voce esta?
           </h1>
           <p className="text-xs text-muted-foreground">
             Registre seu humor de hoje
@@ -162,7 +156,7 @@ const MoodScreen = ({ onBack }: MoodScreenProps) => {
               Humor registrado!
             </p>
             <p className="text-xs text-primary-foreground/80">
-              Cuidar da mente é essencial 💚
+              Cuidar da mente e essencial
             </p>
           </div>
         </motion.div>
@@ -186,7 +180,7 @@ const MoodScreen = ({ onBack }: MoodScreenProps) => {
                 whileTap={{ scale: 0.95 }}
                 className={`flex flex-col items-center gap-1 p-3 rounded-xl transition-all ${
                   isSelected
-                    ? `${mood.activeBg} ring-2 ring-offset-2 ring-${mood.id === "great" ? "yellow" : mood.id === "good" ? "green" : mood.id === "neutral" ? "blue" : mood.id === "bad" ? "orange" : "red"}-500`
+                    ? `${mood.activeBg} ring-2 ring-offset-2 ring-offset-card`
                     : `${mood.bg} hover:opacity-80`
                 }`}
               >
@@ -229,7 +223,6 @@ const MoodScreen = ({ onBack }: MoodScreenProps) => {
                       : "bg-muted text-foreground hover:bg-muted/80"
                   }`}
                 >
-                  <span>{factor.emoji}</span>
                   <span className="text-xs font-medium">{factor.label}</span>
                   {isSelected && <Check size={14} />}
                 </button>
@@ -253,7 +246,7 @@ const MoodScreen = ({ onBack }: MoodScreenProps) => {
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Como foi seu dia? O que você está sentindo..."
+            placeholder="Como foi seu dia? O que voce esta sentindo..."
             className="w-full p-3 rounded-xl bg-muted text-foreground text-sm placeholder:text-muted-foreground resize-none h-24 focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </motion.div>
@@ -264,7 +257,7 @@ const MoodScreen = ({ onBack }: MoodScreenProps) => {
         variants={item}
         className="bg-card rounded-2xl p-4 shadow-zora space-y-3"
       >
-        <h3 className="text-sm font-bold text-foreground">Última Semana</h3>
+        <h3 className="text-sm font-bold text-foreground">Ultima Semana</h3>
         <div className="flex justify-between">
           {weekMoods.map((day, idx) => (
             <div key={idx} className="flex flex-col items-center gap-1">
@@ -301,7 +294,7 @@ const MoodScreen = ({ onBack }: MoodScreenProps) => {
         className="bg-zora-lavender/40 rounded-2xl p-4"
       >
         <p className="text-xs font-semibold text-foreground">
-          🧘 Dica de Bem-Estar
+          Dica de Bem-Estar
         </p>
         <p className="text-sm text-foreground mt-1">
           Respirar profundamente por 1 minuto pode ajudar a reduzir a ansiedade
