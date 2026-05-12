@@ -45,7 +45,6 @@ const ProfileFacade = () => {
         </div>
         <div>
           <h2 className="text-lg font-bold text-foreground">{userName}</h2>
-          <p className="text-sm text-muted-foreground">Plano Gratuito</p>
         </div>
       </div>
 
